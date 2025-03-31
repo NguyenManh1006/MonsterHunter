@@ -1,0 +1,75 @@
+# depslib dependency file v1.0
+1743389905 source:d:\codeblock\monsterhunter\main.cpp
+	"CommonFunction.h"
+	"BaseObject.h"
+	"game_map.h"
+	"MainObject.h"
+	"ImpTimer.h"
+	"Monster.h"
+	"TextObject.h"
+
+1743341808 source:d:\codeblock\monsterhunter\baseobject.cpp
+	"BaseObject.h"
+
+1743341808 d:\codeblock\monsterhunter\baseobject.h
+	"CommonFunction.h"
+
+1743353425 d:\codeblock\monsterhunter\commonfunction.h
+	<windows.h>
+	<SDL.h>
+	<SDL_image.h>
+	<string>
+	<iostream>
+	<vector>
+	<SDL_mixer.h>
+	<SDL_ttf.h>
+
+1743342174 source:d:\codeblock\monsterhunter\bulletobject.cpp
+	"BulletObject.h"
+
+1743354109 source:d:\codeblock\monsterhunter\commonfunction.cpp
+	"CommonFunction.h"
+	"TextObject.h"
+	"BaseObject.h"
+
+1743348058 source:d:\codeblock\monsterhunter\mainobject.cpp
+	"MainObject.h"
+
+1743348058 d:\codeblock\monsterhunter\mainobject.h
+	"CommonFunction.h"
+	"BaseObject.h"
+	<vector>
+	"BulletObject.h"
+
+1743341808 d:\codeblock\monsterhunter\bulletobject.h
+	"CommonFunction.h"
+	"BaseObject.h"
+
+1743345439 source:d:\codeblock\monsterhunter\monster.cpp
+	"Monster.h"
+
+1743345439 d:\codeblock\monsterhunter\monster.h
+	"BaseObject.h"
+	"CommonFunction.h"
+	"MainObject.h"
+
+1743341808 source:d:\codeblock\monsterhunter\game_map.cpp
+	"game_map.h"
+
+1743341865 d:\codeblock\monsterhunter\game_map.h
+	"CommonFunction.h"
+	"BaseObject.h"
+
+1743341808 source:d:\codeblock\monsterhunter\imptimer.cpp
+	"ImpTimer.h"
+	"CommonFunction.h"
+
+1743341882 d:\codeblock\monsterhunter\imptimer.h
+	"CommonFunction.h"
+
+1743352777 d:\codeblock\monsterhunter\textobject.h
+	"CommonFunction.h"
+
+1743352777 source:d:\codeblock\monsterhunter\textobject.cpp
+	"TextObject.h"
+
