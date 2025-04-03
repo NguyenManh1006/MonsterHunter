@@ -74,9 +74,7 @@ private:
 
     int come_back_time;
 
-   // bool is_firing_;
-   // int firing_frame_;
-   // SDL_Texture* fire_texture_;
+    Mix_Chunk* bullet_sound;
 };
 
 

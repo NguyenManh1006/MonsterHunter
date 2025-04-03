@@ -19,12 +19,13 @@ MainObject::MainObject() {
     map_y_=0;
     come_back_time = 0;
     money_count = 0;
- //   firing_frame_=0;
-  //  is_firing_=false;
+    bullet_sound = Mix_LoadWAV("music//bullet.wav");
+    Mix_VolumeChunk(bullet_sound, MIX_MAX_VOLUME / 5);
 }
 
 MainObject::~MainObject() {
-
+    Mix_FreeChunk(bullet_sound);
+    bullet_sound = NULL;
 }
 
 bool MainObject::LoadImg(std::string path , SDL_Renderer* screen) {
@@ -38,30 +39,7 @@ bool MainObject::LoadImg(std::string path , SDL_Renderer* screen) {
 
 }
 
-/*bool MainObject::LoadFireImage(std::string path, SDL_Renderer* screen) {
-    fire_texture_ = IMG_LoadTexture(screen, path.c_str());
-    if (fire_texture_ == NULL) {
-        return false;
-    }
-    return true;
-    SDL_Texture* new_texture = NULL;
 
-    SDL_Surface* load_surface = IMG_Load(path.c_str());
-    if (load_surface != NULL) {
-        SDL_SetColorKey(load_surface, SDL_TRUE, SDL_MapRGB(load_surface->format, COLOR_KEY_R, COLOR_KEY_G, COLOR_KEY_B)); // Sử dụng COLOR_KEY_R, G, B từ CommonFunction.h
-        new_texture = SDL_CreateTextureFromSurface(screen, load_surface);
-        if (new_texture != NULL) {
-            // Không cần đặt rect_ vì kích thước fire_texture_ không liên quan đến rect_ của MainObject
-            // Nếu bạn muốn lấy kích thước của fire_texture_ để sử dụng sau, bạn có thể lưu chúng vào các biến thành viên khác của MainObject.
-        }
-
-        SDL_FreeSurface(load_surface);
-    }
-
-    fire_texture_ = new_texture;
-
-    return fire_texture_ != NULL;
-}*/
 
 void MainObject::set_clips() {
     if(width_frame_>0 && height_frame_>0) {
@@ -98,15 +76,7 @@ void MainObject::Show(SDL_Renderer* des) {
 
         SDL_RenderCopy(des, p_object_, current_clip, &renderQuad);
 
-      /*  if (is_firing_) {
-            SDL_Rect fire_rect = { rect_.x, rect_.y, width_frame_, height_frame_ };
-            SDL_Rect fire_clip = { firing_frame_ * width_frame_, 0, width_frame_, height_frame_ }; // Giả sử ảnh hiệu ứng bắn có cùng kích thước frame với nhân vật
-            SDL_RenderCopy(des, fire_texture_, &fire_clip, &fire_rect);
-            firing_frame_ = (firing_frame_ + 1) % 8; // Giả sử ảnh hiệu ứng bắn có 8 frame
-            if (firing_frame_ == 0) {
-                is_firing_ = false; // Dừng hiệu ứng bắn khi hoàn thành
-            }
-        } */
+
     }
 }
 
@@ -170,28 +140,26 @@ void MainObject::HandleInputAction(SDL_Event events, SDL_Renderer* screen) {    
     if(events.type == SDL_MOUSEBUTTONDOWN) {
         if(events.button.button ==  SDL_BUTTON_LEFT) {
                 if(input_type_.left_ == 0 && input_type_.right_==0 ) {
-            BulletObject* p_bullet = new BulletObject();
-            p_bullet->LoadImg("img//player_bullet.png", screen);
+                    BulletObject* p_bullet = new BulletObject();
+                    p_bullet->LoadImg("img//player_bullet.png", screen);
 
-            if(status_==WALK_LEFT) {
-                p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
-                p_bullet->SetRect(this->rect_.x , rect_.y + height_frame_*0.25);
-            }
-            else {
-                p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
-                p_bullet->SetRect(this->rect_.x + width_frame_-20, rect_.y + height_frame_*0.15);
-            }
+                    if(status_==WALK_LEFT) {
+                        p_bullet->set_bullet_dir(BulletObject::DIR_LEFT);
+                        p_bullet->SetRect(this->rect_.x , rect_.y + height_frame_*0.25);
+                    }
+                    else {
+                        p_bullet->set_bullet_dir(BulletObject::DIR_RIGHT);
+                        p_bullet->SetRect(this->rect_.x + width_frame_-20, rect_.y + height_frame_*0.15);
+                    }
 
-            p_bullet->SetRect(this->rect_.x + width_frame_-20, rect_.y + height_frame_*0.15);
-            p_bullet->set_x_val(20);
-            p_bullet->set_is_move(true);
+                    p_bullet->SetRect(this->rect_.x + width_frame_-20, rect_.y + height_frame_*0.15);
+                    p_bullet->set_x_val(20);
+                    p_bullet->set_is_move(true);
 
-            p_bullet_list.push_back(p_bullet);
+                    p_bullet_list.push_back(p_bullet);
                 }
 
-     /*       is_firing_ = true;
-            firing_frame_=0;
-            LoadFireImage("img//hehe.png", screen);*/
+                Mix_PlayChannel(-1, bullet_sound, 0);
         }
     }
 }

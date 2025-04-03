@@ -9,9 +9,10 @@
 
 
 BaseObject g_background;
-TTF_Font* font_time=NULL;
+TTF_Font* font_time = NULL;
 TTF_Font* g_font_MENU = NULL;
 Mix_Music* g_music = NULL;
+
 bool InitData() {                       //Tạo môi trường//
     bool success = true;
     int ret = SDL_Init(SDL_INIT_VIDEO);
@@ -45,6 +46,7 @@ bool InitData() {                       //Tạo môi trường//
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
         success =  false;
     }
+
           return success;
     }
 }
@@ -130,6 +132,11 @@ bool loadAndPlayMusic(const std::string& filepath) {
 
 int main(int argc, char* argv[]) {
 
+    bool play_again = true;
+    UINT high_score =0;
+
+    while(play_again) {
+
     ImpTimer fps_timer;                                //chỉ số fps
 
     if(InitData() == false) return -1;
@@ -156,15 +163,26 @@ int main(int argc, char* argv[]) {
     mark_game.setColor(TextObject::WHITE_TEXT);
     UINT mark_val = 0;
 
+    TextObject high_score_text;
+    high_score_text.setColor(TextObject::WHITE_TEXT);
+
     bool  is_quit = false;
     bool is_pause = false;
+    Uint32 start_time = 0;
+    Uint32 pause_start = 0;
+    Uint32 total_pause = 0;
 
-    if (!loadAndPlayMusic("music/background.mp3")) { // Thay đổi đường dẫn nhạc nếu cần
- ;
+
+    if (loadAndPlayMusic("music/background.mp3")) { // Thay đổi âm lượng nhạc nền
+            Mix_VolumeMusic(5);
     }
 
-    int ret_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, "Play Game", "Exit", "img//MENU.png");     // Menu bắt đầu chơi
-    if(ret_menu==1) is_quit=true;
+    int ret_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, "Play Game", "Exit", "img//MENU1.png");     // Menu bắt đầu chơi
+    if(ret_menu==1) {
+        play_again = false;
+        is_quit=true;
+    }
+    else start_time = SDL_GetTicks();           // đếm tg chơi
 
     while(!is_quit){
             fps_timer.start();
@@ -173,43 +191,51 @@ int main(int argc, char* argv[]) {
                 is_quit = true;
             }
             if(g_event.type == SDL_KEYDOWN) {
-                if(g_event.key.keysym.sym == SDLK_ESCAPE) {
-                    is_pause = !is_pause;
+                if(g_event.key.keysym.sym == SDLK_ESCAPE) {                      // búm nút escape thì pause
+                    if (!is_pause) {
+                        is_pause = true;
+                        pause_start = SDL_GetTicks(); // Lưu thời điểm bắt đầu pause
+                    } else {
+                        is_pause = false;
+                        total_pause += SDL_GetTicks() - pause_start; // Cập nhật tổng thời gian pause
+                    }
                 }
             }
 
 
-
-            p_player.HandleInputAction(g_event, g_screen);
-        }
-
-        SDL_SetRenderDrawColor(g_screen, RENDER_DRAW_COLOR,RENDER_DRAW_COLOR, RENDER_DRAW_COLOR, RENDER_DRAW_COLOR) ;
-        SDL_RenderClear(g_screen);
-        g_background.Render(g_screen,NULL);
-
-        Map map_data = game_map.getMap();
-
-        p_player.SetMapXY(map_data.start_x_,map_data.start_y_);
-        p_player.HandleBullet(g_screen);
-        p_player.DoPlayer(map_data);
-        p_player.Show(g_screen);
-
-        game_map.SetMap(map_data);
-
-
-        game_map.DrawMap(g_screen);
-
-        for(int i=0;i<list_monster.size();i++) {
-            Monster* p_monster = list_monster.at(i);
-            if(p_monster != NULL) {
-                p_monster->SetMapXY(map_data.start_x_,map_data.start_y_);
-                p_monster->ImpMoveType(g_screen);
-                p_monster->DoPlayer(map_data);
-                p_monster->Show(g_screen);
+            if(!is_pause) {
+                p_player.HandleInputAction(g_event, g_screen);             // hàm điều khiển nhân vật
             }
         }
 
-        std::vector<BulletObject*> bullet_arr = p_player.get_bullet_list();
+        SDL_SetRenderDrawColor(g_screen, RENDER_DRAW_COLOR,RENDER_DRAW_COLOR, RENDER_DRAW_COLOR, RENDER_DRAW_COLOR) ;
+        SDL_RenderClear(g_screen);                           // xóa màn hình
+        g_background.Render(g_screen,NULL);
+        if(!is_pause) {
+            Map map_data = game_map.getMap();                               // vẽ map
+
+            p_player.SetMapXY(map_data.start_x_,map_data.start_y_);          // nhân vật
+            p_player.HandleBullet(g_screen);
+            p_player.DoPlayer(map_data);
+            p_player.Show(g_screen);
+
+            game_map.SetMap(map_data);
+
+
+            game_map.DrawMap(g_screen);
+
+            for(int i=0;i<list_monster.size();i++) {                            // spawn monster
+                Monster* p_monster = list_monster.at(i);
+                if(p_monster != NULL) {
+                    p_monster->SetMapXY(map_data.start_x_,map_data.start_y_);
+                    p_monster->ImpMoveType(g_screen);
+                    p_monster->DoPlayer(map_data);
+                    p_monster->Show(g_screen);
+                }
+            }
+        }
+
+        std::vector<BulletObject*> bullet_arr = p_player.get_bullet_list();          // quái vật biến mất khi bị bắn
         for(int r=0;r < bullet_arr.size(); r++) {
             BulletObject* p_bullet = bullet_arr.at(r);
             if(p_bullet != NULL) {
@@ -238,15 +264,21 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        std::string str_time = "Time: ";
-        Uint32 time_val = SDL_GetTicks()/1000;
-        if(is_pause) time_val =0;
-        Uint32 val_time = 30;
-        val_time -= time_val;
+        std::string str_time = "Time: ";                                     // đếm ngược thời gian
+        Uint32 time_val = (SDL_GetTicks()-start_time - total_pause)/1000;
+        Uint32 val_time = 30 - time_val;
+
 
         std::string val_str_mark = std::to_string(mark_val);
-        std::string  strMark  = "Mark: ";
+        std::string  strMark  = "Score: ";
         strMark += val_str_mark;
+
+        if(mark_val> high_score) high_score = mark_val;
+
+        std::string high_score_str = "High Score: " + std::to_string(high_score);
+        high_score_text.SetText(high_score_str);
+        high_score_text.loadFromRenderedText(font_time, g_screen);
+        high_score_text.RenderText(g_screen, 15, 15);
 
         mark_game.SetText(strMark);
         mark_game.loadFromRenderedText(font_time,g_screen);
@@ -262,13 +294,20 @@ int main(int argc, char* argv[]) {
         }
 
         else {
-            int pause_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, strMark, "Exit", "img//MENU.png");
-            if(pause_menu==1) is_quit =true;
+            int pause_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, strMark, "Play Again", "img//MENU1.png");
+            if(pause_menu==1) break;
+            else {
+                    is_quit = true;
+                    play_again = false;
+            }
         }
 
         if(is_pause) {
-            int pause_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, " ", "Resume", "img//MENU.png");
-            if(pause_menu==1) is_pause =false;
+            int pause_menu = SDLCommonFunction::ShowMenu(g_screen, g_font_MENU, " ", "Resume", "img//MENU1.png");
+            if(pause_menu==1) {
+                    is_pause =false;
+                    total_pause += SDL_GetTicks() - pause_start;
+            }
         }
 
         SDL_RenderPresent(g_screen);
@@ -284,6 +323,7 @@ int main(int argc, char* argv[]) {
         }
 
     }
+}
 
     close();
 return 0;
